@@ -67,7 +67,7 @@ const INIT_HOLIDAYS = [];
 
 // ── Google Sheets API 설정 ────────────────────────────
 // ★ 아래 URL을 Apps Script 배포 후 받은 웹앱 URL로 교체하세요
-const GAS_URL = "https://script.google.com/macros/s/AKfycbzl4mhmLsohevx4RJ2MeFv58wyyAoEfAEGdeHZQVv2Loz5c7qqcVe83Sgncv8SlALqd/exec";
+const GAS_URL = "https://script.google.com/macros/s/AKfycbxeWyU8zBzUBISqxBALUfRWl1DdZFUOiy1YPRFHaP2wHHM2szcQn0WR9J8mn_LlkSkY/exec";
 
 async function gasGet() {
   try {
