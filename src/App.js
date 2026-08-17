@@ -7,19 +7,28 @@ const BANK_INFO = { bank: "신한은행", account: "110416951315, 김병조" };
 const FEE_INFO = { base: "2시간 기준 : 8만원", extra: "추가 시간당 4만원" };
 
 // ── 날짜 유틸 ─────────────────────────────────────────
-function today() { return new Date().toISOString().slice(0, 10); }
+// 한국 시간(KST, UTC+9) 기준 오늘 날짜 반환
+function today() {
+  const now = new Date();
+  const kst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+  return kst.toISOString().slice(0, 10);
+}
 function dateLabel(d) {
-  return new Date(d + "T00:00:00").toLocaleDateString("ko-KR", { month: "long", day: "numeric", weekday: "short" });
+  // 한국 시간 기준 날짜 표시
+  return new Date(d + "T09:00:00").toLocaleDateString("ko-KR", { month: "long", day: "numeric", weekday: "short" });
 }
 function nextDays(n = 30) {
+  // 한국 시간 기준 날짜 목록 생성
   return Array.from({ length: n }, (_, i) => {
-    const d = new Date(); d.setDate(d.getDate() + i);
-    return d.toISOString().slice(0, 10);
+    const now = new Date();
+    const kst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+    kst.setDate(kst.getDate() + i);
+    return kst.toISOString().slice(0, 10);
   });
 }
 function getDayType(dateStr, holidays) {
   if (holidays.includes(dateStr)) return "holiday";
-  const dow = new Date(dateStr + "T00:00:00").getDay(); // 0=일,6=토
+  const dow = new Date(dateStr + "T09:00:00").getDay();
   if (dow === 0 || dow === 6) return "weekend";
   return "weekday";
 }
@@ -67,7 +76,7 @@ const INIT_HOLIDAYS = [];
 
 // ── Google Sheets API 설정 ────────────────────────────
 // ★ 아래 URL을 Apps Script 배포 후 받은 웹앱 URL로 교체하세요
-const GAS_URL = "https://script.google.com/macros/s/AKfycbxeWyU8zBzUBISqxBALUfRWl1DdZFUOiy1YPRFHaP2wHHM2szcQn0WR9J8mn_LlkSkY/exec";
+const GAS_URL = "https://script.google.com/macros/s/AKfycbzKEjINu8Gyo4LcLttCoHPez2pDuATdU6ou_Sa0MNjb267bo_MoJxSIwxP8aGKK9qbj/exec";
 
 async function gasGet() {
   try {
