@@ -67,12 +67,16 @@ const INIT_HOLIDAYS = [];
 
 // ── Google Sheets API 설정 ────────────────────────────
 // ★ 아래 URL을 Apps Script 배포 후 받은 웹앱 URL로 교체하세요
-const GAS_URL = "https://script.google.com/macros/s/AKfycbzl4mhmLsohevx4RJ2MeFv58wyyAoEfAEGdeHZQVv2Loz5c7qqcVe83Sgncv8SlALqd/exec";
+const GAS_URL = "https://script.google.com/macros/s/AKfycbzKEjINu8Gyo4LcLttCoHPez2pDuATdU6ou_Sa0MNjb267bo_MoJxSIwxP8aGKK9qbj/exec";
 
 async function gasGet() {
   try {
-    const res = await fetch(`${GAS_URL}?action=getAll`);
-    return await res.json();
+    const res = await fetch(`${GAS_URL}?action=getAll`, {
+      method: "GET",
+      headers: { "Content-Type": "text/plain" },
+    });
+    const text = await res.text();
+    return JSON.parse(text);
   } catch(e) { console.error("GAS GET 오류:", e); return null; }
 }
 async function gasPost(action, data) {
@@ -179,9 +183,12 @@ export default function App() {
 function LoginScreen({ users, onLogin, onGoRegister, onGoFindPw }) {
   const [id, setId] = useState(""); const [pw, setPw] = useState(""); const [err, setErr] = useState("");
   const login = () => {
-    const u = users[id];
-    if (!u || u.pw !== pw) { setErr("아이디 또는 비밀번호가 올바르지 않습니다."); return; }
-    onLogin({ id, ...u });
+    // 한글 팀명 대응: trim() 으로 앞뒤 공백 제거 후 비교
+    const trimId = id.trim();
+    const trimPw = pw.trim();
+    const u = users[trimId];
+    if (!u || u.pw.trim() !== trimPw) { setErr("아이디 또는 비밀번호가 올바르지 않습니다."); return; }
+    onLogin({ id: trimId, ...u });
   };
   return (
     <div style={S.page}>
@@ -211,11 +218,18 @@ function RegisterScreen({ users, setUsers, onBack, onSuccess }) {
   const [err, setErr] = useState(""); const [done, setDone] = useState(false);
   const f = (k, v) => setForm(p => ({ ...p, [k]: v }));
   const submit = () => {
-    if (!form.team || !form.pw || !form.name || !form.contact) { setErr("모든 항목을 입력해주세요."); return; }
-    if (users[form.team]) { setErr("이미 사용 중인 팀명입니다."); return; }
-    if (form.pw.length < 6) { setErr("비밀번호는 6자 이상이어야 합니다."); return; }
-    if (form.pw !== form.pw2) { setErr("비밀번호가 일치하지 않습니다."); return; }
-    setUsers(p => ({ ...p, [form.team]: { pw: form.pw, role: "user", name: form.name, contact: form.contact } }));
+    // 한글 팀명 대응: 모든 입력값 trim() 처리
+    const trimTeam = form.team.trim();
+    const trimPw = form.pw.trim();
+    const trimPw2 = form.pw2.trim();
+    const trimName = form.name.trim();
+    const trimContact = form.contact.trim();
+
+    if (!trimTeam || !trimPw || !trimName || !trimContact) { setErr("모든 항목을 입력해주세요."); return; }
+    if (users[trimTeam]) { setErr("이미 사용 중인 팀명입니다."); return; }
+    if (trimPw.length < 6) { setErr("비밀번호는 6자 이상이어야 합니다."); return; }
+    if (trimPw !== trimPw2) { setErr("비밀번호가 일치하지 않습니다."); return; }
+    setUsers(p => ({ ...p, [trimTeam]: { pw: trimPw, role: "user", name: trimName, contact: trimContact } }));
     setDone(true);
   };
   if (done) return (
