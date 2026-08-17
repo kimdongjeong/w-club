@@ -7,6 +7,12 @@ const BANK_INFO = { bank: "신한은행", account: "110416951315, 김병조" };
 const FEE_INFO = { base: "2시간 기준 : 8만원", extra: "추가 시간당 4만원" };
 
 // ── 날짜 유틸 ─────────────────────────────────────────
+// ── 날짜 문자열 정규화 (T이후 시간 제거) ─────────────
+function normalizeDate(v) {
+  if (!v) return v;
+  return String(v).slice(0, 10);
+}
+
 // 한국 시간(KST, UTC+9) 기준 오늘 날짜 반환
 function today() {
   const now = new Date();
@@ -118,14 +124,20 @@ export default function App() {
       const data = await gasGet();
       if (data && !data.error) {
         if (data.users && data.users.length > 0) {
-          // 배열 → 객체 변환
           const usersObj = {};
           data.users.forEach(u => { usersObj[u.id] = { pw: u.pw, role: u.role, name: u.name, contact: u.contact }; });
           setUsers(usersObj);
         }
-        if (data.reservations) setReservations(data.reservations);
-        if (data.notices) setNotices(data.notices);
-        if (data.holidays) setHolidays(data.holidays);
+        if (data.reservations) {
+          // 날짜 필드 정규화 (T이후 시간 제거)
+          setReservations(data.reservations.map(r => ({ ...r, date: normalizeDate(r.date) })));
+        }
+        if (data.notices) {
+          setNotices(data.notices.map(n => ({ ...n, date: normalizeDate(n.date) })));
+        }
+        if (data.holidays) {
+          setHolidays(data.holidays.map(h => normalizeDate(h)));
+        }
       }
       setReady(true);
     })();
